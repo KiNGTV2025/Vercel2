@@ -1,5 +1,3 @@
-import fetch from "node-fetch";
-
 export default async function handler(req, res) {
   const url = req.query.url;
   if (!url) return res.status(400).send("❌ URL eksik!");
@@ -14,7 +12,7 @@ export default async function handler(req, res) {
 
     const contentType = response.headers.get("content-type") || "";
 
-    // Eğer .m3u8 ise içindeki TS linklerini Vercel proxy üzerinden yönlendir
+    // Eğer .m3u8 ise TS segmentlerini Vercel üzerinden yönlendir
     if (contentType.includes("mpegurl") || url.endsWith(".m3u8")) {
       let text = await response.text();
       text = text.replace(/(https?:\/\/[^\s]+\.ts)/g, (match) => {
@@ -24,7 +22,7 @@ export default async function handler(req, res) {
       return res.send(text);
     }
 
-    // Diğer dosyalar (TS segmentleri)
+    // TS veya diğer medya dosyaları
     const buffer = await response.arrayBuffer();
     res.setHeader("Content-Type", contentType);
     res.send(Buffer.from(buffer));
