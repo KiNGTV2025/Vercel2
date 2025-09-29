@@ -1,8 +1,11 @@
 const DEFAULT_USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36";
 
-async function fetchConfig(githubRawUrl) {
-  const res = await fetch(githubRawUrl, { cache: "no-store" });
+// GitHub raw URL sabit
+const GITHUB_RAW_URL = "https://raw.githubusercontent.com/KiNGTV2025/King-/main/domian.txt";
+
+async function fetchConfig() {
+  const res = await fetch(GITHUB_RAW_URL, { cache: "no-store" });
   const txt = await res.text();
   try { return JSON.parse(txt); } catch (e) { return null; }
 }
@@ -18,8 +21,7 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   if (req.method === "OPTIONS") return res.status(204).end();
 
-  const githubRawUrl = process.env.GITHUB_RAW_URL;
-  const conf = await fetchConfig(githubRawUrl);
+  const conf = await fetchConfig();
 
   const q = req.query || {};
   const file = q.file;
