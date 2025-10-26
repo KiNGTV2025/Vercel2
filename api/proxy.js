@@ -3,27 +3,24 @@ export default async function handler(req, res) {
   if (!url) return res.status(400).send("❌ URL eksik!");
 
   try {
-    // Hedef isteği yap
     const response = await fetch(url, {
+      redirect: "follow",
       headers: {
-        "User-Agent": req.headers["user-agent"] || "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "User-Agent": req.headers["user-agent"] || "Mozilla/5.0",
         "Referer": "https://dengetv66.live/",
         "Range": req.headers["range"],
         "Accept": "*/*",
-        "Origin": "https://umitdenge.vercel.app",
       },
     });
 
     const contentType = response.headers.get("content-type") || "";
 
-    // 🎬 Eğer M3U8 dosyasıysa segment URL'lerini proxy'le
     if (contentType.includes("mpegurl") || url.endsWith(".m3u8")) {
       const baseUrl = url.substring(0, url.lastIndexOf("/") + 1);
       let text = await response.text();
 
-      // Hem tam (https://...) hem relatif segmentleri yakala
       text = text.replace(
-        /(https?:\/\/[^\s]+\.ts)|(^|\n)([^#\n]+\.ts)/g,
+        /(https?:\/\/[^\s]+\.(ts|m4s|mp4|aac))|(^|\n)([^#\n]+\.(ts|m4s|mp4|aac))/g,
         (match) => {
           const clean = match.trim();
           if (clean.startsWith("http")) {
@@ -38,7 +35,6 @@ export default async function handler(req, res) {
       return res.status(200).send(text);
     }
 
-    // 🎥 Medya dosyaları (TS, MP4 vs.)
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
