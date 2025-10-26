@@ -7,6 +7,8 @@ export default async function handler(req, res) {
   
   try {
     const decodedUrl = decodeURIComponent(url);
+    console.log('Fetching segment:', decodedUrl);
+    
     const response = await fetch(decodedUrl);
     
     if (!response.ok) {
@@ -17,9 +19,10 @@ export default async function handler(req, res) {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'video/MP2T');
-    res.setHeader('Cache-Control', 'public, max-age=7200');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
     
     res.send(Buffer.from(buffer));
+    
   } catch (error) {
     console.error('Segment error:', error);
     res.status(500).json({ 
