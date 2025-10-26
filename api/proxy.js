@@ -15,14 +15,14 @@ export default async function handler(req, res) {
 
     const contentType = response.headers.get("content-type") || "";
 
-    // 🎬 Eğer M3U8 dosyasıysa segment URL’lerini proxy’le
+    // 🎬 M3U8 dosyasıysa içeriği düzenle
     if (contentType.includes("mpegurl") || url.endsWith(".m3u8")) {
       const baseUrl = url.substring(0, url.lastIndexOf("/") + 1);
       let text = await response.text();
 
-      // Hem mutlak hem relatif segment linklerini yakala (.ts, .m4s, .aac, .mp4)
+      // .ts veya .m3u8 alt dosyaları (mutlak veya relatif)
       text = text.replace(
-        /(https?:\/\/[^\s]+?\.(ts|m4s|aac|mp4))|(^|\n)([^#\n]+?\.(ts|m4s|aac|mp4))/g,
+        /(https?:\/\/[^\s]+?\.(ts|m4s|aac|mp4|m3u8))|(^|\n)([^#\n]+?\.(ts|m4s|aac|mp4|m3u8))/g,
         (match) => {
           const clean = match.trim();
           if (clean.startsWith("http")) {
@@ -37,11 +37,10 @@ export default async function handler(req, res) {
       return res.status(200).send(text);
     }
 
-    // 🎥 Medya segmentleri (TS, MP4, AAC vb.)
+    // 🎥 Medya dosyaları
     response.headers.forEach((value, key) => {
       res.setHeader(key, value);
     });
-
     res.setHeader("Access-Control-Allow-Origin", "*");
 
     const buffer = await response.arrayBuffer();
