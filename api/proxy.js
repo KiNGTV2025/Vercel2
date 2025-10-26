@@ -15,16 +15,17 @@ export default async function handler(req, res) {
 
     const contentType = response.headers.get("content-type") || "";
 
-    // 🎬 M3U8 dosyasıysa içeriği düzenle
+    // 🎬 M3U8 dosyasıysa içeriği yeniden yaz
     if (contentType.includes("mpegurl") || url.endsWith(".m3u8")) {
       const baseUrl = url.substring(0, url.lastIndexOf("/") + 1);
       let text = await response.text();
 
-      // .ts veya .m3u8 alt dosyaları (mutlak veya relatif)
+      // .ts ve alt playlist (.m3u8) yollarını yakala (relatif + tam)
       text = text.replace(
         /(https?:\/\/[^\s]+?\.(ts|m4s|aac|mp4|m3u8))|(^|\n)([^#\n]+?\.(ts|m4s|aac|mp4|m3u8))/g,
         (match) => {
           const clean = match.trim();
+          if (!clean) return match;
           if (clean.startsWith("http")) {
             return `/api/proxy?url=${encodeURIComponent(clean)}`;
           }
@@ -37,10 +38,8 @@ export default async function handler(req, res) {
       return res.status(200).send(text);
     }
 
-    // 🎥 Medya dosyaları
-    response.headers.forEach((value, key) => {
-      res.setHeader(key, value);
-    });
+    // 🎥 Medya dosyaları (TS, MP4, AAC, vs.)
+    response.headers.forEach((value, key) => res.setHeader(key, value));
     res.setHeader("Access-Control-Allow-Origin", "*");
 
     const buffer = await response.arrayBuffer();
@@ -49,4 +48,4 @@ export default async function handler(req, res) {
     console.error("Proxy hata:", err);
     res.status(500).send("❌ Yayın alınamadı: " + err.message);
   }
-}
+                                     }
