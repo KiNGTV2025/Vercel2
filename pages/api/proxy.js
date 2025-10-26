@@ -2,6 +2,7 @@ export default async function handler(req, res) {
   const TARGET_URL = 'https://taycan.zirvedesin23.sbs/yayinzirve.m3u8';
   
   try {
+    console.log('Fetching:', TARGET_URL);
     const response = await fetch(TARGET_URL);
     
     if (!response.ok) {
@@ -9,9 +10,11 @@ export default async function handler(req, res) {
     }
     
     const data = await response.text();
+    console.log('Original data length:', data.length);
     
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+    const baseUrl = 'https://umitdenge54.vercel.app';
     
+    // TS segmentlerini proxy'le
     const processedData = data.replace(/(https?:\/\/[^\s]+\.ts)/g, (match) => {
       return `${baseUrl}/api/segment?url=${encodeURIComponent(match)}`;
     });
@@ -20,12 +23,15 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/vnd.apple.mpegurl');
     res.setHeader('Cache-Control', 'no-cache');
     
+    console.log('Sending processed data');
     res.send(processedData);
+    
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).json({ 
       error: 'Proxy failed',
-      message: error.message 
+      message: error.message,
+      target: TARGET_URL
     });
   }
 }
